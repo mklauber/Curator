@@ -33,18 +33,18 @@ class ThumbnailPanel ( wx.Panel ):
         self.Layout()
         
         # Connect Events
-        self.Bind( wx.EVT_LEFT_DOWN, self.ThmubnailPanelOnLeftDown )
-        self.Bind( wx.EVT_SIZE, self.ThmubnailPanelOnSize )
+        self.Bind( wx.EVT_LEFT_DOWN, self.clicked )
+        self.Bind( wx.EVT_SIZE, self.ThumbnailPanelOnSize )
+        self.thumbnail.Bind( wx.EVT_LEFT_DOWN, self.clicked )
+        self.caption.Bind( wx.EVT_LEFT_DOWN, self.clicked )
     
     def __del__( self ):
         pass
     
     
     # Virtual event handlers, overide them in your derived class
-    def ThmubnailPanelOnLeftDown( self, event ):
+    def ThumbnailPanelOnSize( self, event ):
         pass
     
-    def ThmubnailPanelOnSize( self, event ):
+    def clicked( self, event ):
         pass
-    
-
