@@ -8,7 +8,6 @@
 ###########################################################################
 
 import wx
-import wx.xrc
 
 ###########################################################################
 ## Class PhotoOrganizerFrame
@@ -36,6 +35,12 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		
 		self.m_menubar1.Append( self.FileMenu, u"File" ) 
 		
+		self.HelpMenu = wx.Menu()
+		self.DebugMenuItem = wx.MenuItem( self.HelpMenu, wx.ID_ANY, u"Debug", wx.EmptyString, wx.ITEM_NORMAL )
+		self.HelpMenu.AppendItem( self.DebugMenuItem )
+		
+		self.m_menubar1.Append( self.HelpMenu, u"Help" ) 
+				
 		self.SetMenuBar( self.m_menubar1 )
 		
 		bSizer2 = wx.BoxSizer( wx.VERTICAL )
@@ -95,25 +100,28 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.thumbPreviewSplitter = wx.SplitterWindow( self.m_panel5, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SP_3D )
 		self.thumbPreviewSplitter.Bind( wx.EVT_IDLE, self.thumbPreviewSplitterOnIdle )
 		
-		self.ThumbnailScroller = wx.ScrolledWindow( self.thumbPreviewSplitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.VSCROLL )
+		self.ThumbnailScroller = wx.ScrolledWindow( self.thumbPreviewSplitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
 		self.ThumbnailScroller.SetScrollRate( 5, 5 )
-		self.thumbnailSizer = wx.GridSizer( 0, 2, 0, 0 )
+		bSizer21 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.thumbnailGrid = wx.ListCtrl( self.ThumbnailScroller, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_EDIT_LABELS|wx.LC_ICON|wx.LC_NO_HEADER)
+		bSizer21.Add( self.thumbnailGrid, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		self.ThumbnailScroller.SetSizer( self.thumbnailSizer )
+		self.ThumbnailScroller.SetSizer( bSizer21 )
 		self.ThumbnailScroller.Layout()
-		self.thumbnailSizer.Fit( self.ThumbnailScroller )
-		self.m_panel8 = wx.Panel( self.thumbPreviewSplitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer21.Fit( self.ThumbnailScroller )
+		self.PreviewPanel = wx.Panel( self.thumbPreviewSplitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.Preview = wx.StaticBitmap( self.m_panel8, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.Preview = wx.StaticBitmap( self.PreviewPanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer9.Add( self.Preview, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 		
 		
-		self.m_panel8.SetSizer( bSizer9 )
-		self.m_panel8.Layout()
-		bSizer9.Fit( self.m_panel8 )
-		self.thumbPreviewSplitter.SplitVertically( self.ThumbnailScroller, self.m_panel8, 546 )
+		self.PreviewPanel.SetSizer( bSizer9 )
+		self.PreviewPanel.Layout()
+		bSizer9.Fit( self.PreviewPanel )
+		self.thumbPreviewSplitter.SplitVertically( self.ThumbnailScroller, self.PreviewPanel, 546 )
 		bSizer6.Add( self.thumbPreviewSplitter, 1, wx.EXPAND, 5 )
 		
 		
@@ -126,6 +134,7 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		
 		self.SetSizer( bSizer2 )
 		self.Layout()
+		self.m_statusBar3 = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
 		
 		self.Centre( wx.BOTH )
 		
@@ -134,10 +143,12 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.AddFileButtonOnMenuSelection, id = self.AddFileButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.AddFolderButtonOnMenuSelection, id = self.AddFolderButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.ExitButtonOnMenuSelection, id = self.ExitButton.GetId() )
+		self.Bind( wx.EVT_MENU, self.DebugMenuItemOnMenuSelection, id = self.DebugMenuItem.GetId() )
 		self.TagTree.Bind( wx.EVT_TREE_SEL_CHANGED, self.TagTreeOnTreeSelChanged )
 		self.FilterButton.Bind( wx.EVT_BUTTON, self.FilterButtonOnButtonClick )
-		self.thumbPreviewSplitter.Bind( wx.EVT_SPLITTER_SASH_POS_CHANGED, self.thumbPreviewSplitterOnSplitterSashPosChanged )
-		self.Preview.Bind( wx.EVT_SIZE, self.PreviewOnSize )
+		self.thumbnailGrid.Bind( wx.EVT_LIST_ITEM_SELECTED, self.thumbnailGridOnListItemSelected )
+		self.thumbnailGrid.Bind( wx.EVT_LIST_KEY_DOWN, self.thumbnailGridOnListKeyDown )
+		self.PreviewPanel.Bind( wx.EVT_SIZE, self.PreviewPanelOnSize )
 	
 	def __del__( self ):
 		pass
@@ -156,6 +167,9 @@ class PhotoOrganizerFrame ( wx.Frame ):
 	def ExitButtonOnMenuSelection( self, event ):
 		pass
 	
+	def DebugMenuItemOnMenuSelection( self, event ):
+		pass
+	
 	def TagTreeOnTreeSelChanged( self, event ):
 		pass
 	
@@ -165,7 +179,14 @@ class PhotoOrganizerFrame ( wx.Frame ):
 	def thumbPreviewSplitterOnSplitterSashPosChanged( self, event ):
 		pass
 	
-	def PreviewOnSize( self, event ):
+	
+	def thumbnailGridOnListItemSelected(self, event):
+		pass
+	
+	def thumbnailGridOnListKeyDown(self, event):
+		pass
+	
+	def PreviewPanelOnSize( self, event ):
 		pass
 	
 	def m_splitter8OnIdle( self, event ):
