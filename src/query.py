@@ -1,7 +1,7 @@
 """Handles the parsing of a query string, and returning a SQL object representing a query."""
 import shlex
 
-
+import peewee
 from models import File, Metadata
 
 def parse(query):
@@ -13,7 +13,7 @@ def parse(query):
     try:
         iter(result)
     except TypeError:
-        result = File.select().join(Metadata).where(result)
+        result = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(result)
     print result
     return result
 
@@ -37,20 +37,26 @@ def _parse(iterator):
             output = OR(output, _parse(iterator))
         elif token == 'NOT':
             output = NOT(_parse(iterator))
+        elif token == 'HAS':
+            output = HAS(token, iterator.next())
         else:
             output = Token(token)
     return output
 
 
 def AND(left, right):
-    return (File.select().join(Metadata).where(left) & File.select().join(Metadata).where(right))
+    return (File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(left) & File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(right))
 
 def OR(left, right):
-    return (File.select().join(Metadata).where(left) | File.select().join(Metadata).where(right))
+    return (File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(left) | File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(right))
 
 
 def NOT(token):
-    return (~(File.id << File.select().join(Metadata).where(token)))
+    return (~(File.id << File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(token)))
+
+
+def HAS(_, token):
+    return (Metadata.field == token)
 
 
 def Token(token):
