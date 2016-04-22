@@ -54,8 +54,6 @@ class File(BaseModel):
         except IntegrityError:
             print "Duplicate Image %s" % path
             return None
-        
-    
 
 
 class Metadata(BaseModel):

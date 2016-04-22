@@ -1,12 +1,14 @@
 from __future__ import division
 
+import os
+from StringIO import StringIO
+
 import wx
 import peewee
-from StringIO import StringIO
+from send2trash import send2trash
+
 from ui.generated import PhotoOrganizerFrame
 from ui.helpers import scale_bitmap
-
-
 from models import File, Metadata
 import query
 
@@ -72,6 +74,25 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         if len(new_files) > 0:
             self.update_thumbnails()
 
+    def AddFolderButtonOnMenuSelection(self, event):
+        selectDialog = wx.DirDialog(self, "Choose Image Directory", "", wx.DD_DEFAULT_STYLE|wx.DD_DIR_MUST_EXIST)
+        if selectDialog.ShowModal() == wx.ID_CANCEL:
+            return
+        # Add files.
+        new = []
+        for root, subFolders, files in os.walk(selectDialog.GetPath()):
+            for file in files:
+                new.append(File.create_from_file(os.path.join(root, file)))
+        
+        # Create Thumbnails
+        new_files = filter(None, new)
+        for f in new_files:
+            self.thumbnail_index[f.md5] = self.thumbnails.Add(f.as_bitmap())
+        
+        # If there are any new files we need to re layout the thumbnailGrid
+        if len(new_files) > 0:
+            self.update_thumbnails()
+
     def DebugMenuItemOnMenuSelection(self, event):
         import pdb
         pdb.set_trace()
@@ -83,11 +104,18 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         self.update_preview()
 
     def thumbnailGridOnListKeyDown(self, event):
-        if event.GetKeyCode() != 84:
+        if event.GetKeyCode() == 84:
+            self.handle_T_key()
+            
+        elif event.GetKeyCode() == 8:
+            self.handle_backspace_key()
+        elif event.GetKeyCode() == 127:
+            self.handle_delete_key()
+        else:
             event.Skip(True)
-            return
-        
-        # Get the File objects corresponding to the selected thumbnails
+
+    def handle_T_key(self):
+                # Get the File objects corresponding to the selected thumbnails
         files = File.select().where(File.md5 << [item.Text for item in self.get_selected_thumbs()])
         
         # Determine the existing tags for these files.
@@ -116,6 +144,37 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
                                     Metadata.value << removed_tags).execute()
         # Repaint the tag list.
         self.update_tags()
+
+    def handle_backspace_key(self):
+        confirmDialog = wx.MessageDialog(self, 
+                                         "Remove %s Files?" % self.thumbnailGrid.SelectedItemCount, 
+                                         "Remove Files?", 
+                                         style=wx.OK|wx.CANCEL)
+        confirmDialog.SetOKLabel("Delete")
+        if confirmDialog.ShowModal() == wx.ID_OK:
+            files = File.select().where(File.md5 << [item.Text for item in self.get_selected_thumbs()])
+            for file in files:
+                file.delete_instance(recursive=True)
+            # Repaint the tag list.
+            self.update_tags()
+            self.update_thumbnails()
+            self.preview = None
+    
+    def handle_delete_key(self):
+        confirmDialog = wx.MessageDialog(self, 
+                                         "Delete %s Files?" % self.thumbnailGrid.SelectedItemCount, 
+                                         "Delete Files?", 
+                                         style=wx.OK|wx.CANCEL)
+        confirmDialog.SetOKLabel("Delete")
+        if confirmDialog.ShowModal() == wx.ID_OK:
+            files = File.select().where(File.md5 << [item.Text for item in self.get_selected_thumbs()])
+            for file in files:
+                send2trash(file.path)
+                file.delete_instance(recursive=True)
+            # Repaint the tag list.
+            self.update_tags()
+            self.update_thumbnails()
+            self.preview = None
 
     def thumbnailGridOnListItemSelected(self, event):
         item = event.Item

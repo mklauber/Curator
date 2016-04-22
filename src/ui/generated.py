@@ -23,7 +23,7 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		
 		self.m_menubar1 = wx.MenuBar( 0 )
 		self.FileMenu = wx.Menu()
-		self.AddFileButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Add File"+ u"\t" + u"ctrl-A", wx.EmptyString, wx.ITEM_NORMAL )
+		self.AddFileButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Add File", wx.EmptyString, wx.ITEM_NORMAL )
 		self.FileMenu.AppendItem( self.AddFileButton )
 		
 		self.AddFolderButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Add Folder", wx.EmptyString, wx.ITEM_NORMAL )
