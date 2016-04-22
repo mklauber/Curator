@@ -8,6 +8,7 @@
 ###########################################################################
 
 import wx
+import wx.xrc
 
 ###########################################################################
 ## Class PhotoOrganizerFrame
@@ -23,24 +24,30 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.m_menubar1 = wx.MenuBar( 0 )
 		self.FileMenu = wx.Menu()
 		self.AddFileButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Add File"+ u"\t" + u"ctrl-A", wx.EmptyString, wx.ITEM_NORMAL )
-		self.FileMenu.Append( self.AddFileButton )
+		self.FileMenu.AppendItem( self.AddFileButton )
 		
 		self.AddFolderButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Add Folder", wx.EmptyString, wx.ITEM_NORMAL )
-		self.FileMenu.Append( self.AddFolderButton )
+		self.FileMenu.AppendItem( self.AddFolderButton )
 		
 		self.FileMenu.AppendSeparator()
 		
 		self.ExitButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
-		self.FileMenu.Append( self.ExitButton )
+		self.FileMenu.AppendItem( self.ExitButton )
 		
 		self.m_menubar1.Append( self.FileMenu, u"File" ) 
 		
+		self.optionsMenu = wx.Menu()
+		self.PreferencesButton = wx.MenuItem( self.optionsMenu, wx.ID_ANY, u"Preferences", wx.EmptyString, wx.ITEM_NORMAL )
+		self.optionsMenu.AppendItem( self.PreferencesButton )
+		
+		self.m_menubar1.Append( self.optionsMenu, u"Options" ) 
+		
 		self.HelpMenu = wx.Menu()
 		self.DebugMenuItem = wx.MenuItem( self.HelpMenu, wx.ID_ANY, u"Debug", wx.EmptyString, wx.ITEM_NORMAL )
-		self.HelpMenu.Append( self.DebugMenuItem )
+		self.HelpMenu.AppendItem( self.DebugMenuItem )
 		
 		self.m_menubar1.Append( self.HelpMenu, u"Help" ) 
-				
+		
 		self.SetMenuBar( self.m_menubar1 )
 		
 		bSizer2 = wx.BoxSizer( wx.VERTICAL )
@@ -104,7 +111,7 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.ThumbnailScroller.SetScrollRate( 5, 5 )
 		bSizer21 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.thumbnailGrid = wx.ListCtrl( self.ThumbnailScroller, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_EDIT_LABELS|wx.LC_ICON|wx.LC_NO_HEADER)
+		self.thumbnailGrid = wx.ListCtrl( self.ThumbnailScroller, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_EDIT_LABELS|wx.LC_ICON|wx.LC_NO_HEADER )
 		bSizer21.Add( self.thumbnailGrid, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
@@ -142,20 +149,20 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.AddFileButtonOnMenuSelection, id = self.AddFileButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.AddFolderButtonOnMenuSelection, id = self.AddFolderButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.ExitButtonOnMenuSelection, id = self.ExitButton.GetId() )
+		self.Bind( wx.EVT_MENU, self.PreferencesButtonOnMenuSelection, id = self.PreferencesButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.DebugMenuItemOnMenuSelection, id = self.DebugMenuItem.GetId() )
-		self.FilterBox.Bind( wx.EVT_TEXT_ENTER, self.FilterBoxOnTextEnter )
 		self.TagTree.Bind( wx.EVT_TREE_SEL_CHANGED, self.TagTreeOnTreeSelChanged )
+		self.FilterBox.Bind( wx.EVT_TEXT_ENTER, self.FilterBoxOnTextEnter )
 		self.FilterButton.Bind( wx.EVT_BUTTON, self.FilterButtonOnButtonClick )
 		self.thumbnailGrid.Bind( wx.EVT_LIST_ITEM_SELECTED, self.thumbnailGridOnListItemSelected )
 		self.thumbnailGrid.Bind( wx.EVT_LIST_KEY_DOWN, self.thumbnailGridOnListKeyDown )
-		self.PreviewPanel.Bind( wx.EVT_SIZE, self.PreviewPanelOnSize )
+		self.Preview.Bind( wx.EVT_SIZE, self.PreviewOnSize )
 	
 	def __del__( self ):
 		pass
 	
 	
 	# Virtual event handlers, overide them in your derived class
-
 	def AddFileButtonOnMenuSelection( self, event ):
 		pass
 	
@@ -163,6 +170,9 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		pass
 	
 	def ExitButtonOnMenuSelection( self, event ):
+		pass
+	
+	def PreferencesButtonOnMenuSelection( self, event ):
 		pass
 	
 	def DebugMenuItemOnMenuSelection( self, event ):
@@ -177,17 +187,13 @@ class PhotoOrganizerFrame ( wx.Frame ):
 	def FilterButtonOnButtonClick( self, event ):
 		pass
 	
-	def thumbPreviewSplitterOnSplitterSashPosChanged( self, event ):
+	def thumbnailGridOnListItemSelected( self, event ):
 		pass
 	
-	
-	def thumbnailGridOnListItemSelected(self, event):
+	def thumbnailGridOnListKeyDown( self, event ):
 		pass
 	
-	def thumbnailGridOnListKeyDown(self, event):
-		pass
-	
-	def PreviewPanelOnSize( self, event ):
+	def PreviewOnSize( self, event ):
 		pass
 	
 	def m_splitter8OnIdle( self, event ):
