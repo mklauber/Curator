@@ -21,7 +21,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         super(type(self),self).__init__(parent)
         self.add_dir = "~/Pictures"
         self._preview = None
-        self.filter = ""
+        self._filter = ""
 
         # Only update the preview when we stop changing the list selection
         self.list_change_timer = wx.Timer(self)
@@ -33,8 +33,19 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         for f in File.select():
             self.thumbnail_index[f.md5] = self.thumbnails.Add(f.as_bitmap())
         self.update_thumbnails()
+        self.SetStatusText("Matching Images: %s" % self.thumbnailGrid.ItemCount)
         self.update_tags()
         
+
+    @property
+    def filter(self):
+        return self._filter
+    
+    @filter.setter
+    def filter(self, value):
+        self._filter = value
+        self.update_thumbnails()
+        self.SetStatusText("Matching Images: %s" % self.thumbnailGrid.ItemCount)
 
     @property
     def preview(self):
@@ -122,12 +133,10 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     def FilterBoxOnTextEnter( self, event ):
         """On filter box enter update the internal filter and update the thumbnails"""
         self.filter = self.FilterBox.GetValue()
-        self.update_thumbnails()
 
     def FilterButtonOnButtonClick( self, event ):
         """On filter button click update the internal filter and update the thumbnails"""
         self.filter = self.FilterBox.GetValue()
-        self.update_thumbnails()
 
     def TagTreeOnTreeSelChanged(self, event):
         """On tag selection update the internal filter and filter box text and update the thumbnails"""
@@ -136,7 +145,6 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         else:
             self.filter = "tag:\"%s\"" % self.TagTree.GetItemText(event.Item)
         self.FilterBox.SetValue(str(self.filter))
-        self.update_thumbnails()
 
     def update_thumbnails(self):
         self.thumbnailGrid.ClearAll()
