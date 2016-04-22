@@ -22,8 +22,9 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     def __init__(self, parent):
         super(type(self),self).__init__(parent)
         self.add_dir = "~/Pictures"
-        self._preview = None
-        self._filter = ""
+        self._preview = None    # Track the currently selected image, by md5.
+        self._filter = ""       # Track the current Filter
+        self.filters = []       # Track previous Filters.
 
         # Only update the preview when we stop changing the list selection
         self.list_change_timer = wx.Timer(self)
@@ -37,7 +38,6 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         self.update_thumbnails()
         self.SetStatusText("Matching Images: %s" % self.thumbnailGrid.ItemCount)
         self.update_tags()
-        
 
     @property
     def filter(self):
@@ -46,6 +46,9 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     @filter.setter
     def filter(self, value):
         self._filter = value
+        
+        if value.strip() != "":
+            self.update_filters(value)
         self.update_thumbnails()
         self.SetStatusText("Matching Images: %s" % self.thumbnailGrid.ItemCount)
 
@@ -63,7 +66,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         if selectDialog.ShowModal() == wx.ID_CANCEL:
             return     # the user changed idea...
         self.add_dir = path.dirname(selectDialog.GetPaths()[0])
-        self.preview = wx.Image(selectDialog.GetPaths()[0])
+        
         
         # Create the new files, and update the thumnail_index with any new files
         new_files = filter(None, (File.create_from_file(path) for path in selectDialog.GetPaths()))
@@ -73,6 +76,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         # If there are any new files we need to re layout the thumbnailGrid
         if len(new_files) > 0:
             self.update_thumbnails()
+            self.preview = new_files[0].md5
 
     def AddFolderButtonOnMenuSelection(self, event):
         selectDialog = wx.DirDialog(self, "Choose Image Directory", "", wx.DD_DEFAULT_STYLE|wx.DD_DIR_MUST_EXIST)
@@ -159,7 +163,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
             self.update_tags()
             self.update_thumbnails()
             self.preview = None
-    
+
     def handle_delete_key(self):
         confirmDialog = wx.MessageDialog(self, 
                                          "Delete %s Files?" % self.thumbnailGrid.SelectedItemCount, 
@@ -180,10 +184,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         item = event.Item
         def change_selection(_):
             if item.Text == self.thumbnailGrid.GetItem(self.thumbnailGrid.GetFocusedItem()).Text:
-                file = File.get(md5=item.Text)
-                image = wx.Image()
-                image.LoadFile(file.path)
-                self.preview = image
+                self.preview = item.Text
 
         self.Unbind(wx.EVT_TIMER)
         self.Bind(wx.EVT_TIMER, change_selection, self.list_change_timer)
@@ -231,14 +232,27 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
             return
         
         # The logic for creating a accurate image as large as can be seen
+        preview = wx.Image()
+        preview.LoadFile(File.get(md5=self.preview).path)
+        
         width, height = self.PreviewPanel.GetSize()
-        hRatio = height / self.preview.Height
-        wRatio = width / self.preview.Width 
+        hRatio = height / preview.Height
+        wRatio = width / preview.Width 
         ratio = min(hRatio, wRatio)
-        image = self.preview.Scale(self.preview.Width * ratio, self.preview.Height * ratio, wx.IMAGE_QUALITY_HIGH)
+        image = preview.Scale(preview.Width * ratio, preview.Height * ratio, wx.IMAGE_QUALITY_HIGH)
         result = wx.BitmapFromImage(image)
         # set the Result.
         self.Preview.SetBitmap(result)
+
+    def update_filters(self, item):
+        if item in self.filters:
+            self.filters.remove(item)
+        self.filters.insert(0, item)
+        if len(self.filters) > 10:
+            self.filters = self.filters[:10]
+        self.FilterBox.Clear()
+        self.FilterBox.AppendItems(self.filters)
+        
 
     def get_selected_thumbs(self):
         selection = [self.thumbnailGrid.GetFirstSelected()]

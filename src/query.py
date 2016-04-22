@@ -14,7 +14,6 @@ def parse(query):
         iter(result)
     except TypeError:
         result = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(result)
-    print result
     return result
 
 def tokenize(string):
@@ -31,13 +30,13 @@ def _parse(iterator):
             output = _parse(iterator)
         elif token == ')':
             return output
-        elif token == 'AND':
+        elif token.upper() == 'AND':
             output = AND(output, _parse(iterator))
-        elif token == 'OR':
+        elif token.upper() == 'OR':
             output = OR(output, _parse(iterator))
-        elif token == 'NOT':
+        elif token.upper() == 'NOT':
             output = NOT(_parse(iterator))
-        elif token == 'HAS':
+        elif token.upper() == 'HAS':
             output = HAS(token, iterator.next())
         else:
             output = Token(token)
