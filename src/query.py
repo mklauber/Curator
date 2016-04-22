@@ -1,4 +1,6 @@
 """Handles the parsing of a query string, and returning a SQL object representing a query."""
+import shlex
+
 
 from models import File, Metadata
 
@@ -7,14 +9,19 @@ def parse(query):
         return File.select()
     
     tokens = tokenize(query)
-    expression = _parse(iter(tokens))
-    return File.select().join(Metadata).where(expression).distinct(File.md5)
+    result = _parse(iter(tokens))
+    try:
+        iter(result)
+    except TypeError:
+        result = File.select().join(Metadata).where(result)
+    print result
+    return result
 
 def tokenize(string):
     string = string.replace('(', ' ( ')
     string = string.replace(')', ' ) ')
     string = string.replace('!', ' NOT ')
-    return string.split()
+    return shlex.split(string)
 
 
 def _parse(iterator):
@@ -36,14 +43,14 @@ def _parse(iterator):
 
 
 def AND(left, right):
-    return (left & right)
+    return (File.select().join(Metadata).where(left) & File.select().join(Metadata).where(right))
 
 def OR(left, right):
-    return (left | right)
+    return (File.select().join(Metadata).where(left) | File.select().join(Metadata).where(right))
 
 
 def NOT(token):
-    return ~(token)
+    return (~(File.id << File.select().join(Metadata).where(token)))
 
 
 def Token(token):

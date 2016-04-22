@@ -81,7 +81,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         
         # Determine the existing tags for these files.
         old_tags = Metadata.filter(Metadata.file << files)
-        old_tags = [t.value for t in old_tags]
+        old_tags = sorted(list(set([t.value for t in old_tags])))
         
         dialog = wx.TextEntryDialog(None, "Tags:", "Modifiy Tags", value=", ".join(old_tags))
         if dialog.ShowModal() == wx.ID_OK:
@@ -134,7 +134,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         if event.Item == self.TagTree.GetRootItem():
             self.filter = ""
         else:
-            self.filter = "tag:%s" % self.TagTree.GetItemText(event.Item)
+            self.filter = "tag:\"%s\"" % self.TagTree.GetItemText(event.Item)
         self.FilterBox.SetValue(str(self.filter))
         self.update_thumbnails()
 
@@ -155,7 +155,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         root = self.TagTree.RootItem
         root = self.TagTree.AppendItem(root, "Tags")
         query = Metadata.select().where(Metadata.field=='tag')
-        for tag in set(t.value for t in query):
+        for tag in sorted(list(set(t.value for t in query))):
             self.TagTree.AppendItem(root, tag)
         self.TagTree.Expand(root)
 
@@ -167,7 +167,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         width, height = self.PreviewPanel.GetSize()
         hRatio = height / self.preview.Height
         wRatio = width / self.preview.Width 
-        ratio = min(1, hRatio, wRatio) # Don't blow up images.
+        ratio = min(hRatio, wRatio)
         image = self.preview.Scale(self.preview.Width * ratio, self.preview.Height * ratio, wx.IMAGE_QUALITY_HIGH)
         result = wx.BitmapFromImage(image)
         # set the Result.

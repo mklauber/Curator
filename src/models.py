@@ -52,7 +52,7 @@ class File(BaseModel):
             f.save()
             return f
         except IntegrityError:
-            print "Unable to import %s" % path
+            print "Duplicate Image %s" % path
             return None
         
     
