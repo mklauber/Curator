@@ -1,5 +1,6 @@
 from __future__ import division
 
+import json
 import os
 from StringIO import StringIO
 
@@ -59,6 +60,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     @preview.setter
     def preview(self, value):
         self._preview = value
+        self.update_metadata(File.get(md5=value).get_metadata())
         self.update_preview()
 
     def AddFileButtonOnMenuSelection(self, event):
@@ -104,7 +106,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     def ExitButtonOnMenuSelection( self, event ):
         self.Close()
 
-    def PreviewPanelOnSize(self, event):
+    def PreviewOnSize(self, event):
         self.update_preview()
 
     def thumbnailGridOnListKeyDown(self, event):
@@ -252,7 +254,9 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
             self.filters = self.filters[:10]
         self.FilterBox.Clear()
         self.FilterBox.AppendItems(self.filters)
-        
+
+    def update_metadata(self, metadata):
+        self.DetailsLabel.SetLabel(json.dumps(metadata, indent=2))
 
     def get_selected_thumbs(self):
         selection = [self.thumbnailGrid.GetFirstSelected()]

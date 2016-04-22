@@ -1,6 +1,9 @@
 from peewee import *
 from os import path
 import hashlib
+import imghdr
+from PIL import Image
+
 
 import wx
 from StringIO import StringIO
@@ -23,6 +26,19 @@ class File(BaseModel):
         img = wx.Image()
         img.LoadFile(StringIO(self.thumbnail))
         return img.ConvertToBitmap()
+    
+    def get_metadata(self):
+        img = Image.open(self.path)
+        return {
+            'path': self.path,
+            'md5': self.md5,
+            'width': img.size[0],
+            'height': img.size[1],
+            'name': path.basename(self.path),
+            'type': imghdr.what(self.path),
+            'size': path.getsize(self.path),
+            
+        }
     
     @classmethod
     def create_from_file(cls, path):
