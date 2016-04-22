@@ -40,6 +40,8 @@ class File(BaseModel):
         # Create the thumbnail
         thumb = wx.Image()
         thumb.LoadFile(path)
+        if thumb.IsOk() == False:
+            return None
         s = StringIO()
         thumb.Scale(144,144, wx.IMAGE_QUALITY_NORMAL).SaveFile(s, 'image/png')
         s.seek(0)
@@ -50,6 +52,7 @@ class File(BaseModel):
             f.save()
             return f
         except IntegrityError:
+            print "Unable to import %s" % path
             return None
         
     
@@ -57,13 +60,13 @@ class File(BaseModel):
 
 class Metadata(BaseModel):
     file = ForeignKeyField(File)
-    category = CharField(index=True)
+    field = CharField(index=True)
     value = CharField(index=True) 
     
     class Meta:
         database = database
         indexes = (
-            (('file', 'category', 'value'), True),
+            (('file', 'field', 'value'), True),
         )
 
 

@@ -1,3 +1,5 @@
 .project
+.settings
 *.pyc
 **/metadata.db
+src/build

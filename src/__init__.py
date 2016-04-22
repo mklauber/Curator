@@ -16,7 +16,7 @@ class PhotoOrganizer(wx.App):
 # 
 # Run the program
 if __name__ == '__main__':
-    logging.basicConfig(level="DEBUG")
+    logging.basicConfig(level="INFO")
     app = PhotoOrganizer()
 #     import wx.lib.inspection
 #     wx.lib.inspection.InspectionTool().Show()

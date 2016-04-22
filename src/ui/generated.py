@@ -23,21 +23,21 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.m_menubar1 = wx.MenuBar( 0 )
 		self.FileMenu = wx.Menu()
 		self.AddFileButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Add File"+ u"\t" + u"ctrl-A", wx.EmptyString, wx.ITEM_NORMAL )
-		self.FileMenu.AppendItem( self.AddFileButton )
+		self.FileMenu.Append( self.AddFileButton )
 		
 		self.AddFolderButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Add Folder", wx.EmptyString, wx.ITEM_NORMAL )
-		self.FileMenu.AppendItem( self.AddFolderButton )
+		self.FileMenu.Append( self.AddFolderButton )
 		
 		self.FileMenu.AppendSeparator()
 		
 		self.ExitButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
-		self.FileMenu.AppendItem( self.ExitButton )
+		self.FileMenu.Append( self.ExitButton )
 		
 		self.m_menubar1.Append( self.FileMenu, u"File" ) 
 		
 		self.HelpMenu = wx.Menu()
 		self.DebugMenuItem = wx.MenuItem( self.HelpMenu, wx.ID_ANY, u"Debug", wx.EmptyString, wx.ITEM_NORMAL )
-		self.HelpMenu.AppendItem( self.DebugMenuItem )
+		self.HelpMenu.Append( self.DebugMenuItem )
 		
 		self.m_menubar1.Append( self.HelpMenu, u"Help" ) 
 				
@@ -88,7 +88,7 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
 		
 		FilterBoxChoices = []
-		self.FilterBox = wx.ComboBox( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, FilterBoxChoices, 0 )
+		self.FilterBox = wx.ComboBox( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, FilterBoxChoices, wx.TE_PROCESS_ENTER )
 		bSizer15.Add( self.FilterBox, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		self.FilterButton = wx.Button( self.m_panel5, wx.ID_ANY, u"Filter", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -139,11 +139,11 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
-		self.Bind( wx.EVT_KEY_DOWN, self.MyFrame1OnKeyDown )
 		self.Bind( wx.EVT_MENU, self.AddFileButtonOnMenuSelection, id = self.AddFileButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.AddFolderButtonOnMenuSelection, id = self.AddFolderButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.ExitButtonOnMenuSelection, id = self.ExitButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.DebugMenuItemOnMenuSelection, id = self.DebugMenuItem.GetId() )
+		self.FilterBox.Bind( wx.EVT_TEXT_ENTER, self.FilterBoxOnTextEnter )
 		self.TagTree.Bind( wx.EVT_TREE_SEL_CHANGED, self.TagTreeOnTreeSelChanged )
 		self.FilterButton.Bind( wx.EVT_BUTTON, self.FilterButtonOnButtonClick )
 		self.thumbnailGrid.Bind( wx.EVT_LIST_ITEM_SELECTED, self.thumbnailGridOnListItemSelected )
@@ -155,9 +155,7 @@ class PhotoOrganizerFrame ( wx.Frame ):
 	
 	
 	# Virtual event handlers, overide them in your derived class
-	def MyFrame1OnKeyDown( self, event ):
-		pass
-	
+
 	def AddFileButtonOnMenuSelection( self, event ):
 		pass
 	
@@ -171,6 +169,9 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		pass
 	
 	def TagTreeOnTreeSelChanged( self, event ):
+		pass
+	
+	def FilterBoxOnTextEnter( self, event ):
 		pass
 	
 	def FilterButtonOnButtonClick( self, event ):
