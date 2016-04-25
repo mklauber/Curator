@@ -110,8 +110,8 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         files = File.select().where(File.md5 << [item.Text for item in self.get_selected_thumbs()])
         
         # Determine the existing tags for these files.
-        old_tags = Metadata.filter(Metadata.file << files, Metadata.field=="tag")
-        old_tags = sorted(list(set([t.value for t in old_tags])))
+        old_tags = Metadata.filter(Metadata.file << files, Metadata.field.not_in(['import-time']))
+        old_tags = sorted(list(set(['%s:"%s"' % (t.field, t.value) for t in old_tags])))
         
         dialog = wx.TextEntryDialog(None, "Tags:", "Modifiy Tags", value=", ".join(old_tags))
         if dialog.ShowModal() == wx.ID_OK:
@@ -121,10 +121,16 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
             new_tags = [t.strip() for t in new_tags.split(",")]
             
             # Add any new tags that have been added.
-            for tag in set(new_tags) - set(old_tags):
+            for token in set(new_tags) - set(old_tags):
+                # Determine the actual field and tags
+                if ':' in token:
+                    field, value = token.split(':', 1)
+                else:
+                    field, value = 'tag', token
+                # Create records for all selected files.
                 for file in files:
                     try:
-                        Metadata(file=file, field="tag", value=tag).save()
+                        Metadata(file=file, field=field, value=value).save()
                     except IntegrityError:
                         pass
             
