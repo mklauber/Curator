@@ -60,7 +60,7 @@ def HAS(_, token):
 
 def Token(token):
     if ':' in token:
-        field, value = token.split(':')
+        field, value = token.split(':', 1)
     else:
         field, value = 'tag', token
     return ((Metadata.field == field) & (Metadata.value == value)) 

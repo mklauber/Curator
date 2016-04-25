@@ -3,3 +3,5 @@
 *.pyc
 **/metadata.db
 src/build
+TODO.txt
+`

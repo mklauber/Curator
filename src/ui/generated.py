@@ -9,6 +9,7 @@
 
 import wx
 import wx.xrc
+import wx.html
 
 ###########################################################################
 ## Class PhotoOrganizerFrame
@@ -24,27 +25,27 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.m_menubar1 = wx.MenuBar( 0 )
 		self.FileMenu = wx.Menu()
 		self.AddFileButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Add File", wx.EmptyString, wx.ITEM_NORMAL )
-		self.FileMenu.AppendItem( self.AddFileButton )
+		self.FileMenu.Append( self.AddFileButton )
 		
 		self.AddFolderButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Add Folder", wx.EmptyString, wx.ITEM_NORMAL )
-		self.FileMenu.AppendItem( self.AddFolderButton )
+		self.FileMenu.Append( self.AddFolderButton )
 		
 		self.FileMenu.AppendSeparator()
 		
 		self.ExitButton = wx.MenuItem( self.FileMenu, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
-		self.FileMenu.AppendItem( self.ExitButton )
+		self.FileMenu.Append( self.ExitButton )
 		
 		self.m_menubar1.Append( self.FileMenu, u"File" ) 
 		
 		self.optionsMenu = wx.Menu()
 		self.PreferencesButton = wx.MenuItem( self.optionsMenu, wx.ID_ANY, u"Preferences", wx.EmptyString, wx.ITEM_NORMAL )
-		self.optionsMenu.AppendItem( self.PreferencesButton )
+		self.optionsMenu.Append( self.PreferencesButton )
 		
 		self.m_menubar1.Append( self.optionsMenu, u"Options" ) 
 		
 		self.HelpMenu = wx.Menu()
 		self.DebugMenuItem = wx.MenuItem( self.HelpMenu, wx.ID_ANY, u"Debug", wx.EmptyString, wx.ITEM_NORMAL )
-		self.HelpMenu.AppendItem( self.DebugMenuItem )
+		self.HelpMenu.Append( self.DebugMenuItem )
 		
 		self.m_menubar1.Append( self.HelpMenu, u"Help" ) 
 		
@@ -64,7 +65,7 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.m_panel9 = wx.Panel( self.m_splitter10, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer16 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.TagTree = wx.TreeCtrl( self.m_panel9, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE )
+		self.TagTree = wx.TreeCtrl( self.m_panel9, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT )
 		bSizer16.Add( self.TagTree, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
@@ -74,9 +75,9 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.m_panel11 = wx.Panel( self.m_splitter10, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer18 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.DetailsLabel = wx.StaticText( self.m_panel11, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0|wx.RAISED_BORDER )
-		self.DetailsLabel.Wrap( -1 )
-		bSizer18.Add( self.DetailsLabel, 1, wx.ALL|wx.EXPAND, 5 )
+		self.DetailsWindow = wx.html.HtmlWindow( self.m_panel11, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.html.HW_SCROLLBAR_AUTO )
+		self.DetailsWindow.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWFRAME ) )
+		bSizer18.Add( self.DetailsWindow, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
 		self.m_panel11.SetSizer( bSizer18 )
@@ -151,11 +152,12 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.ExitButtonOnMenuSelection, id = self.ExitButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.PreferencesButtonOnMenuSelection, id = self.PreferencesButton.GetId() )
 		self.Bind( wx.EVT_MENU, self.DebugMenuItemOnMenuSelection, id = self.DebugMenuItem.GetId() )
+		self.DetailsWindow.Bind( wx.html.EVT_HTML_LINK_CLICKED, self.DetailsWindowOnHtmlLinkClicked )
 		self.TagTree.Bind( wx.EVT_TREE_SEL_CHANGED, self.TagTreeOnTreeSelChanged )
 		self.FilterBox.Bind( wx.EVT_TEXT_ENTER, self.FilterBoxOnTextEnter )
 		self.FilterButton.Bind( wx.EVT_BUTTON, self.FilterButtonOnButtonClick )
+		self.thumbnailGrid.Bind( wx.EVT_CHAR, self.thumbnailGridOnChar )
 		self.thumbnailGrid.Bind( wx.EVT_LIST_ITEM_SELECTED, self.thumbnailGridOnListItemSelected )
-		self.thumbnailGrid.Bind( wx.EVT_LIST_KEY_DOWN, self.thumbnailGridOnListKeyDown )
 		self.Preview.Bind( wx.EVT_SIZE, self.PreviewOnSize )
 	
 	def __del__( self ):
@@ -178,6 +180,9 @@ class PhotoOrganizerFrame ( wx.Frame ):
 	def DebugMenuItemOnMenuSelection( self, event ):
 		pass
 	
+	def DetailsWindowOnHtmlLinkClicked( self, event ):
+		pass
+	
 	def TagTreeOnTreeSelChanged( self, event ):
 		pass
 	
@@ -187,10 +192,10 @@ class PhotoOrganizerFrame ( wx.Frame ):
 	def FilterButtonOnButtonClick( self, event ):
 		pass
 	
-	def thumbnailGridOnListItemSelected( self, event ):
+	def thumbnailGridOnChar( self, event ):
 		pass
 	
-	def thumbnailGridOnListKeyDown( self, event ):
+	def thumbnailGridOnListItemSelected( self, event ):
 		pass
 	
 	def PreviewOnSize( self, event ):

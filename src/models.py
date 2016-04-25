@@ -37,7 +37,7 @@ class File(BaseModel):
             'name': path.basename(self.path),
             'type': imghdr.what(self.path),
             'size': path.getsize(self.path),
-            
+            'metadata': Metadata.filter(Metadata.file==self)
         }
     
     @classmethod
@@ -66,9 +66,10 @@ class File(BaseModel):
         # Returns a new File instance if one was created, otherwise None
         try:
             f.save()
+            Metadata(file=f, field="import-time", value=import_time).save()
             return f
         except IntegrityError:
-            print "Duplicate Image %s" % path
+            logger.info("Duplicate Image %s", path)
             return None
 
 

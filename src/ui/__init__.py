@@ -16,6 +16,8 @@ import query
 import logging
 from os import path
 from peewee import IntegrityError
+from _collections import defaultdict
+from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
@@ -50,6 +52,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         
         if value.strip() != "":
             self.update_filters(value)
+        self.FilterBox.SetValue(str(self.filter))
         self.update_thumbnails()
         self.SetStatusText("Matching Images: %s" % self.thumbnailGrid.ItemCount)
 
@@ -68,36 +71,19 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         if selectDialog.ShowModal() == wx.ID_CANCEL:
             return     # the user changed idea...
         self.add_dir = path.dirname(selectDialog.GetPaths()[0])
-        
-        
-        # Create the new files, and update the thumnail_index with any new files
-        new_files = filter(None, (File.create_from_file(path) for path in selectDialog.GetPaths()))
-        for f in new_files:
-            self.thumbnail_index[f.md5] = self.thumbnails.Add(f.as_bitmap())
-        
-        # If there are any new files we need to re layout the thumbnailGrid
-        if len(new_files) > 0:
-            self.update_thumbnails()
-            self.preview = new_files[0].md5
+        self.import_files(selectDialog.GetPaths())
 
     def AddFolderButtonOnMenuSelection(self, event):
         selectDialog = wx.DirDialog(self, "Choose Image Directory", "", wx.DD_DEFAULT_STYLE|wx.DD_DIR_MUST_EXIST)
         if selectDialog.ShowModal() == wx.ID_CANCEL:
             return
+        
         # Add files.
-        new = []
+        new_files = []
         for root, subFolders, files in os.walk(selectDialog.GetPath()):
             for file in files:
-                new.append(File.create_from_file(os.path.join(root, file)))
-        
-        # Create Thumbnails
-        new_files = filter(None, new)
-        for f in new_files:
-            self.thumbnail_index[f.md5] = self.thumbnails.Add(f.as_bitmap())
-        
-        # If there are any new files we need to re layout the thumbnailGrid
-        if len(new_files) > 0:
-            self.update_thumbnails()
+                new_files.append(os.path.join(root, file))
+        self.import_files(new_files)
 
     def DebugMenuItemOnMenuSelection(self, event):
         import pdb
@@ -109,13 +95,12 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     def PreviewOnSize(self, event):
         self.update_preview()
 
-    def thumbnailGridOnListKeyDown(self, event):
-        if event.GetKeyCode() == 84:
+    def thumbnailGridOnChar(self, event):
+        if event.GetKeyCode() in [ord(i) for i in ['t', 'T']]:
             self.handle_T_key()
-            
-        elif event.GetKeyCode() == 8:
+        elif event.GetKeyCode() == wx.WXK_DELETE and event.shiftDown == False:
             self.handle_backspace_key()
-        elif event.GetKeyCode() == 127:
+        elif event.GetKeyCode() == wx.WXK_DELETE and event.shiftDown == True:
             self.handle_delete_key()
         else:
             event.Skip(True)
@@ -125,7 +110,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         files = File.select().where(File.md5 << [item.Text for item in self.get_selected_thumbs()])
         
         # Determine the existing tags for these files.
-        old_tags = Metadata.filter(Metadata.file << files)
+        old_tags = Metadata.filter(Metadata.file << files, Metadata.field=="tag")
         old_tags = sorted(list(set([t.value for t in old_tags])))
         
         dialog = wx.TextEntryDialog(None, "Tags:", "Modifiy Tags", value=", ".join(old_tags))
@@ -204,9 +189,30 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         """On tag selection update the internal filter and filter box text and update the thumbnails"""
         if event.Item == self.TagTree.GetRootItem():
             self.filter = ""
+        elif self.TagTree.GetItemParent(event.Item) == self.TagTree.GetRootItem():
+            self.filter = "has \"%s\"" % self.TagTree.GetItemText(event.Item)
         else:
-            self.filter = "tag:\"%s\"" % self.TagTree.GetItemText(event.Item)
-        self.FilterBox.SetValue(str(self.filter))
+            field = self.TagTree.GetItemText(self.TagTree.GetItemParent(event.Item))
+            tag   = self.TagTree.GetItemText(event.Item)
+            self.filter = "%s:\"%s\"" % (field, tag)
+
+    def DetailsWindowOnHtmlLinkClicked( self, event ):
+        self.filter = event.GetLinkInfo().Href
+
+    def import_files(self, files):
+        # Create the new files, and update the thumnail_index with any new files
+        import_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        new_files = filter(None, (File.create_from_file(path) for path in files))
+        for f in new_files:
+            self.thumbnail_index[f.md5] = self.thumbnails.Add(f.as_bitmap())
+        
+        # If there are any new files we need to re layout the thumbnailGrid
+        if len(new_files) > 0:
+            self.update_thumbnails()
+            self.update_tags()
+            self.preview = new_files[0].md5
+        
+        return new_files
 
     def update_thumbnails(self):
         self.thumbnailGrid.ClearAll()
@@ -223,11 +229,14 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     def update_tags(self):
         self.TagTree.DeleteAllItems()
         root = self.TagTree.RootItem
-        root = self.TagTree.AppendItem(root, "Tags")
-        query = Metadata.select().where(Metadata.field=='tag')
-        for tag in sorted(list(set(t.value for t in query))):
-            self.TagTree.AppendItem(root, tag)
-        self.TagTree.Expand(root)
+        root = self.TagTree.AppendItem(root, "root")
+        for item in Metadata.select(Metadata.field).distinct().order_by(Metadata.field):
+            field = self.TagTree.AppendItem(root, item.field)
+            results = Metadata.select(Metadata.value).distinct().order_by(Metadata.value)
+            results = results.where(Metadata.field==item.field)
+            for record in results:
+                self.TagTree.AppendItem(field, record.value)
+            self.TagTree.Expand(field)
 
     def update_preview(self):
         if self.preview == None:
@@ -256,7 +265,26 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         self.FilterBox.AppendItems(self.filters)
 
     def update_metadata(self, metadata):
-        self.DetailsLabel.SetLabel(json.dumps(metadata, indent=2))
+        # Handle Static markup
+        markup = ""
+        markup += "<b>Name:</b> %s<br />" % metadata['name']
+        markup += "<b>Path:</b> %s<br />" % metadata['path']
+        markup += "<b>md5:</b> %s<br />" % metadata['md5']
+        markup += "<b>Width:</b> %s<br />" % metadata['width']
+        markup += "<b>Height:</b> %s<br />" % metadata['height']
+        markup += "<b>Type:</b> %s<br />" % metadata['type']
+        markup += "<b>size:</b> %s<br />" % metadata['size']
+        
+        # Handle dynamic Markup
+        fields = defaultdict(set)
+        for m in metadata['metadata']:
+            fields[m.field].add(m.value)
+        
+        for field, values in fields.items():
+            links = ["<a href='%s:\"%s\"'>%s</a>" % (field, value, value) for value in values]
+            markup += "<b>%s:</b> %s<br />" % (field, ", ".join(links))
+        
+        self.DetailsWindow.SetPage(markup)
 
     def get_selected_thumbs(self):
         selection = [self.thumbnailGrid.GetFirstSelected()]
