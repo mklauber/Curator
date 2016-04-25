@@ -193,14 +193,15 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
 
     def TagTreeOnTreeSelChanged(self, event):
         """On tag selection update the internal filter and filter box text and update the thumbnails"""
-        if event.Item == self.TagTree.GetRootItem():
-            self.filter = ""
-        elif self.TagTree.GetItemParent(event.Item) == self.TagTree.GetRootItem():
-            self.filter = "has \"%s\"" % self.TagTree.GetItemText(event.Item)
-        else:
-            field = self.TagTree.GetItemText(self.TagTree.GetItemParent(event.Item))
-            tag   = self.TagTree.GetItemText(event.Item)
-            self.filter = "%s:\"%s\"" % (field, tag)
+        filter = []
+        for item in self.TagTree.Selections:
+            if self.TagTree.GetItemParent(item) == self.TagTree.GetRootItem():
+                filter.append("has \"%s\"" % self.TagTree.GetItemText(item))
+            else:
+                field = self.TagTree.GetItemText(self.TagTree.GetItemParent(item))
+                tag   = self.TagTree.GetItemText(item)
+                filter.append("%s:\"%s\"" % (field, tag))
+        self.filter = " OR ".join(filter)
 
     def DetailsWindowOnHtmlLinkClicked( self, event ):
         self.filter = event.GetLinkInfo().Href

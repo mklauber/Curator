@@ -65,7 +65,7 @@ class PhotoOrganizerFrame ( wx.Frame ):
 		self.m_panel9 = wx.Panel( self.m_splitter10, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer16 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.TagTree = wx.TreeCtrl( self.m_panel9, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT )
+		self.TagTree = wx.TreeCtrl( self.m_panel9, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE )
 		bSizer16.Add( self.TagTree, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
