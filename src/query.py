@@ -44,14 +44,24 @@ def _parse(iterator):
 
 
 def AND(left, right):
-    return (File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(left) & File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(right))
+    if type(left) == peewee.Expression:
+        left = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(left)
+    if type(right) == peewee.Expression:
+        right = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(right)
+    return (left & right)
 
 def OR(left, right):
-    return (File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(left) | File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(right))
+    if type(left) == peewee.Expression:
+        left = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(left)
+    if type(right) == peewee.Expression:
+        right = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(right)
+    return (left | right)
 
 
 def NOT(token):
-    return (~(File.id << File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(token)))
+    if token == peewee.Expression:
+        token = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(token)
+    return (~(File.id << token))
 
 
 def HAS(_, token):
