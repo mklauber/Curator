@@ -127,6 +127,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
                     field, value = token.split(':', 1)
                 else:
                     field, value = 'tag', token
+                value = value.strip('"')
                 # Create records for all selected files.
                 for file in files:
                     try:
@@ -136,9 +137,18 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
             
             # Remove any tags that were removed.
             removed_tags = list(set(old_tags) - set(new_tags))
-            query = Metadata.delete().where(Metadata.file << files, 
-                                    Metadata.field == "tag", 
-                                    Metadata.value << removed_tags).execute()
+            # Add any new tags that have been added.
+            for token in set(old_tags) - set(new_tags):
+                # Determine the actual field and tags
+                if ':' in token:
+                    field, value = token.split(':', 1)
+                else:
+                    field, value = 'tag', token
+                # Create records for all selected files.
+                value = value.strip('"') 
+                Metadata.delete().where(Metadata.file << files,
+                                        Metadata.field == field,
+                                        Metadata.value == value).execute()
         # Repaint the tag list.
         self.update_tags()
 

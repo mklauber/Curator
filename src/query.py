@@ -38,8 +38,11 @@ def _parse(iterator):
             output = NOT(_parse(iterator))
         elif token.upper() == 'HAS':
             output = HAS(token, iterator.next())
+        elif token.upper() == 'UNTAGGED':
+            output = UNTAGGED()
         else:
             output = Token(token)
+    print output
     return output
 
 
@@ -49,6 +52,7 @@ def AND(left, right):
     if type(right) == peewee.Expression:
         right = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(right)
     return (left & right)
+
 
 def OR(left, right):
     if type(left) == peewee.Expression:
@@ -61,11 +65,15 @@ def OR(left, right):
 def NOT(token):
     if token == peewee.Expression:
         token = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(token)
-    return (~(File.id << token))
+    return File.select().where(~(File.id << token))
 
 
 def HAS(_, token):
     return (Metadata.field == token)
+
+
+def UNTAGGED():
+    return File.select().where(File.id.not_in(Metadata.select(Metadata.file).where(Metadata.field != 'import-time')))
 
 
 def Token(token):
