@@ -21,17 +21,17 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-class PhotoOrganizerWindow( PhotoOrganizerFrame ):
+class PhotoOrganizerWindow(PhotoOrganizerFrame):
     def __init__(self, parent):
-        super(type(self),self).__init__(parent)
+        super(type(self), self).__init__(parent)
         self.add_dir = "~/Pictures"
-        self._preview = None    # Track the currently selected image, by md5.
-        self._filter = ""       # Track the current Filter
-        self.filters = []       # Track previous Filters.
+        self._preview = None  # Track the currently selected image, by md5.
+        self._filter = ""  # Track the current Filter
+        self.filters = []  # Track previous Filters.
 
         # Only update the preview when we stop changing the list selection
         self.list_change_timer = wx.Timer(self)
-        
+
         # Load the Grid
         self.thumbnail_index = {}
         self.thumbnails = wx.ImageList()
@@ -45,11 +45,11 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     @property
     def filter(self):
         return self._filter
-    
+
     @filter.setter
     def filter(self, value):
         self._filter = value
-        
+
         if value.strip() != "":
             self.update_filters(value)
         self.FilterBox.SetValue(str(self.filter))
@@ -67,17 +67,17 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         self.update_preview()
 
     def AddFileButtonOnMenuSelection(self, event):
-        selectDialog = wx.FileDialog(self, "Add File(s)", self.add_dir, "", style=wx.FD_OPEN|wx.FD_MULTIPLE)
+        selectDialog = wx.FileDialog(self, "Add File(s)", self.add_dir, "", style=wx.FD_OPEN | wx.FD_MULTIPLE)
         if selectDialog.ShowModal() == wx.ID_CANCEL:
-            return     # the user changed idea...
+            return  # the user changed idea...
         self.add_dir = path.dirname(selectDialog.GetPaths()[0])
         self.import_files(selectDialog.GetPaths())
 
     def AddFolderButtonOnMenuSelection(self, event):
-        selectDialog = wx.DirDialog(self, "Choose Image Directory", "", wx.DD_DEFAULT_STYLE|wx.DD_DIR_MUST_EXIST)
+        selectDialog = wx.DirDialog(self, "Choose Image Directory", "", wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
         if selectDialog.ShowModal() == wx.ID_CANCEL:
             return
-        
+
         # Add files.
         new_files = []
         for root, subFolders, files in os.walk(selectDialog.GetPath()):
@@ -89,7 +89,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         import pdb
         pdb.set_trace()
 
-    def ExitButtonOnMenuSelection( self, event ):
+    def ExitButtonOnMenuSelection(self, event):
         self.Close()
 
     def PreviewOnSize(self, event):
@@ -108,18 +108,18 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     def handle_T_key(self):
                 # Get the File objects corresponding to the selected thumbnails
         files = File.select().where(File.md5 << [item.Text for item in self.get_selected_thumbs()])
-        
+
         # Determine the existing tags for these files.
         old_tags = Metadata.filter(Metadata.file << files, Metadata.field.not_in(['import-time']))
         old_tags = sorted(list(set(['%s:"%s"' % (t.field, t.value) for t in old_tags])))
-        
+
         dialog = wx.TextEntryDialog(None, "Tags:", "Modifiy Tags", value=", ".join(old_tags))
         if dialog.ShowModal() == wx.ID_OK:
-            
+
             # Determine the new tags for these files.
             new_tags = dialog.GetValue()
             new_tags = [t.strip() for t in new_tags.split(",")]
-            
+
             # Add any new tags that have been added.
             for token in set(new_tags) - set(old_tags):
                 # Determine the actual field and tags
@@ -134,7 +134,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
                         Metadata(file=file, field=field, value=value).save()
                     except IntegrityError:
                         pass
-            
+
             # Remove any tags that were removed.
             removed_tags = list(set(old_tags) - set(new_tags))
             # Add any new tags that have been added.
@@ -145,7 +145,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
                 else:
                     field, value = 'tag', token
                 # Create records for all selected files.
-                value = value.strip('"') 
+                value = value.strip('"')
                 Metadata.delete().where(Metadata.file << files,
                                         Metadata.field == field,
                                         Metadata.value == value).execute()
@@ -153,10 +153,10 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         self.update_tags()
 
     def handle_backspace_key(self):
-        confirmDialog = wx.MessageDialog(self, 
-                                         "Remove %s Files?" % self.thumbnailGrid.SelectedItemCount, 
-                                         "Remove Files?", 
-                                         style=wx.OK|wx.CANCEL)
+        confirmDialog = wx.MessageDialog(self,
+                                         "Remove %s Files?" % self.thumbnailGrid.SelectedItemCount,
+                                         "Remove Files?",
+                                         style=wx.OK | wx.CANCEL)
         confirmDialog.SetOKLabel("Delete")
         if confirmDialog.ShowModal() == wx.ID_OK:
             files = File.select().where(File.md5 << [item.Text for item in self.get_selected_thumbs()])
@@ -168,10 +168,10 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
             self.preview = None
 
     def handle_delete_key(self):
-        confirmDialog = wx.MessageDialog(self, 
-                                         "Delete %s Files?" % self.thumbnailGrid.SelectedItemCount, 
-                                         "Delete Files?", 
-                                         style=wx.OK|wx.CANCEL)
+        confirmDialog = wx.MessageDialog(self,
+                                         "Delete %s Files?" % self.thumbnailGrid.SelectedItemCount,
+                                         "Delete Files?",
+                                         style=wx.OK | wx.CANCEL)
         confirmDialog.SetOKLabel("Delete")
         if confirmDialog.ShowModal() == wx.ID_OK:
             files = File.select().where(File.md5 << [item.Text for item in self.get_selected_thumbs()])
@@ -193,11 +193,11 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         self.Bind(wx.EVT_TIMER, change_selection, self.list_change_timer)
         self.list_change_timer.StartOnce(100)
 
-    def FilterBoxOnTextEnter( self, event ):
+    def FilterBoxOnTextEnter(self, event):
         """On filter box enter update the internal filter and update the thumbnails"""
         self.filter = self.FilterBox.GetValue()
 
-    def FilterButtonOnButtonClick( self, event ):
+    def FilterButtonOnButtonClick(self, event):
         """On filter button click update the internal filter and update the thumbnails"""
         self.filter = self.FilterBox.GetValue()
 
@@ -209,11 +209,11 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
                 filter.append("has \"%s\"" % self.TagTree.GetItemText(item))
             else:
                 field = self.TagTree.GetItemText(self.TagTree.GetItemParent(item))
-                tag   = self.TagTree.GetItemText(item)
+                tag = self.TagTree.GetItemText(item)
                 filter.append("%s:\"%s\"" % (field, tag))
         self.filter = " OR ".join(filter)
 
-    def DetailsWindowOnHtmlLinkClicked( self, event ):
+    def DetailsWindowOnHtmlLinkClicked(self, event):
         self.filter = event.GetLinkInfo().Href
 
     def import_files(self, files):
@@ -222,13 +222,13 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         new_files = filter(None, (File.create_from_file(path) for path in files))
         for f in new_files:
             self.thumbnail_index[f.md5] = self.thumbnails.Add(f.as_bitmap())
-        
+
         # If there are any new files we need to re layout the thumbnailGrid
         if len(new_files) > 0:
             self.update_thumbnails()
             self.update_tags()
             self.preview = new_files[0].md5
-        
+
         return new_files
 
     def update_thumbnails(self):
@@ -240,7 +240,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
             item.SetImage(self.thumbnail_index[f.md5])
             item.SetId(i)
             item.SetText(f.md5)
-            
+
             self.thumbnailGrid.InsertItem(item)
 
     def update_tags(self):
@@ -250,7 +250,7 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         for item in Metadata.select(Metadata.field).distinct().order_by(Metadata.field):
             field = self.TagTree.AppendItem(root, item.field)
             results = Metadata.select(Metadata.value).distinct().order_by(Metadata.value)
-            results = results.where(Metadata.field==item.field)
+            results = results.where(Metadata.field == item.field)
             for record in results:
                 self.TagTree.AppendItem(field, record.value)
             self.TagTree.Expand(field)
@@ -258,14 +258,14 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
     def update_preview(self):
         if self.preview == None:
             return
-        
+
         # The logic for creating a accurate image as large as can be seen
         preview = wx.Image()
         preview.LoadFile(File.get(md5=self.preview).path)
-        
+
         width, height = self.PreviewPanel.GetSize()
         hRatio = height / preview.Height
-        wRatio = width / preview.Width 
+        wRatio = width / preview.Width
         ratio = min(hRatio, wRatio)
         image = preview.Scale(preview.Width * ratio, preview.Height * ratio, wx.IMAGE_QUALITY_HIGH)
         result = wx.BitmapFromImage(image)
@@ -291,20 +291,20 @@ class PhotoOrganizerWindow( PhotoOrganizerFrame ):
         markup += "<b>Height:</b> %s<br />" % metadata['height']
         markup += "<b>Type:</b> %s<br />" % metadata['type']
         markup += "<b>size:</b> %s<br />" % metadata['size']
-        
+
         # Handle dynamic Markup
         fields = defaultdict(set)
         for m in metadata['metadata']:
             fields[m.field].add(m.value)
-        
+
         for field, values in fields.items():
             links = ["<a href='%s:\"%s\"'>%s</a>" % (field, value, value) for value in values]
             markup += "<b>%s:</b> %s<br />" % (field, ", ".join(links))
-        
+
         self.DetailsWindow.SetPage(markup)
 
     def get_selected_thumbs(self):
         selection = [self.thumbnailGrid.GetFirstSelected()]
         while len(selection) < self.thumbnailGrid.SelectedItemCount:
             selection.append(self.thumbnailGrid.GetNextSelected(selection[-1]))
-        return [self.thumbnailGrid.GetItem(i) for i in selection] 
+        return [self.thumbnailGrid.GetItem(i) for i in selection]

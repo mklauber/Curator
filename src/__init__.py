@@ -12,8 +12,8 @@ class PhotoOrganizer(wx.App):
         frame.Show()
         self.SetTopWindow(frame)
         return True
- 
-# 
+
+#
 # Run the program
 if __name__ == '__main__':
     logging.basicConfig(level="INFO")

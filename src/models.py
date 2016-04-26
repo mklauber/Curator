@@ -21,12 +21,15 @@ class File(BaseModel):
     md5 = CharField(unique=True, index=True)
     path = CharField()
     thumbnail = BlobField()
-    
+
+    def __hash__(self):
+        return int(self.md5[:8], 16)
+
     def as_bitmap(self):
         img = wx.Image()
         img.LoadFile(StringIO(self.thumbnail))
         return img.ConvertToBitmap()
-    
+
     def get_metadata(self):
         img = Image.open(self.path)
         return {
@@ -37,9 +40,9 @@ class File(BaseModel):
             'name': path.basename(self.path),
             'type': imghdr.what(self.path),
             'size': path.getsize(self.path),
-            'metadata': Metadata.filter(Metadata.file==self)
+            'metadata': Metadata.filter(Metadata.file == self)
         }
-    
+
     @classmethod
     def create_from_file(cls, path):
         """Handles all the logic about creating a File record from a file on the filesystem."""
@@ -59,7 +62,7 @@ class File(BaseModel):
         if thumb.IsOk() == False:
             return None
         s = StringIO()
-        thumb.Scale(144,144, wx.IMAGE_QUALITY_NORMAL).SaveFile(s, 'image/png')
+        thumb.Scale(144, 144, wx.IMAGE_QUALITY_NORMAL).SaveFile(s, 'image/png')
         s.seek(0)
         f.thumbnail = s.read()
         
@@ -77,7 +80,7 @@ class Metadata(BaseModel):
     file = ForeignKeyField(File)
     field = CharField(index=True)
     value = CharField(index=True) 
-    
+
     class Meta:
         database = database
         indexes = (
@@ -88,6 +91,7 @@ class Metadata(BaseModel):
 def create_database():
     database.connect()
     database.create_tables([File, Metadata])
+
 
 if path.exists("metadata.db") == False:
     create_database()
