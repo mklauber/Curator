@@ -7,7 +7,7 @@ from models import File, Metadata
 def parse(query):
     if query == "":
         return File.select()
-    
+
     tokens = tokenize(query)
     result = _parse(iter(tokens))
     try:
@@ -42,38 +42,27 @@ def _parse(iterator):
             output = UNTAGGED()
         else:
             output = Token(token)
-    print output
     return output
 
 
 def AND(left, right):
-    if type(left) == peewee.Expression:
-        left = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(left)
-    if type(right) == peewee.Expression:
-        right = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(right)
     return (left & right)
 
 
 def OR(left, right):
-    if type(left) == peewee.Expression:
-        left = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(left)
-    if type(right) == peewee.Expression:
-        right = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(right)
     return (left | right)
 
 
 def NOT(token):
-    if token == peewee.Expression:
-        token = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(token)
-    return File.select().where(~(File.id << token))
+    return set(File.select().where(File.id.not_in([f.id for f in token])))
 
 
 def HAS(_, token):
-    return (Metadata.field == token)
+    return set(File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(Metadata.field == token))
 
 
 def UNTAGGED():
-    return File.select().where(File.id.not_in(Metadata.select(Metadata.file).where(Metadata.field != 'import-time')))
+    return set(File.select().where(File.id.not_in(Metadata.select(Metadata.file).where(Metadata.field != 'import-time'))))
 
 
 def Token(token):
@@ -81,5 +70,5 @@ def Token(token):
         field, value = token.split(':', 1)
     else:
         field, value = 'tag', token
-    return ((Metadata.field == field) & (Metadata.value == value)) 
+    return set(File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where((Metadata.field == field) & (Metadata.value == value)))
 
