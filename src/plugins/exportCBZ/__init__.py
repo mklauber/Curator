@@ -1,4 +1,5 @@
-
+import math
+from os import path
 import query
 from types import MethodType
 import wx
@@ -15,8 +16,10 @@ def ExportCBZOnMenuSelection(self, event):
     zf = zipfile.ZipFile(saveFileDialog.GetPath(), 'w')
 
     files = query.parse(self.filter)
-    for file in files:
-        zf.write(file.path)
+    offset = int(math.log10(len(files))+.5) # Round up
+    for i, file in enumerate(files):
+        name = '%s-%s' % (str(i).zfill(offset), path.basename(file.path))
+        zf.write(file.path, name)
     zf.close()
 
 
