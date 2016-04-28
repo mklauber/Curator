@@ -44,8 +44,6 @@ class PhotoOrganizerFrame (wx.Frame):
         self.m_menubar1.Append(self.optionsMenu, u"Options")
 
         self.HelpMenu = wx.Menu()
-        self.DebugMenuItem = wx.MenuItem(self.HelpMenu, wx.ID_ANY, u"Debug", wx.EmptyString, wx.ITEM_NORMAL)
-        self.HelpMenu.Append(self.DebugMenuItem)
 
         self.m_menubar1.Append(self.HelpMenu, u"Help")
 
@@ -151,7 +149,6 @@ class PhotoOrganizerFrame (wx.Frame):
         self.Bind(wx.EVT_MENU, self.AddFolderButtonOnMenuSelection, id=self.AddFolderButton.GetId())
         self.Bind(wx.EVT_MENU, self.ExitButtonOnMenuSelection, id=self.ExitButton.GetId())
         self.Bind(wx.EVT_MENU, self.PreferencesButtonOnMenuSelection, id=self.PreferencesButton.GetId())
-        self.Bind(wx.EVT_MENU, self.DebugMenuItemOnMenuSelection, id=self.DebugMenuItem.GetId())
         self.DetailsWindow.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.DetailsWindowOnHtmlLinkClicked)
         self.TagTree.Bind(wx.EVT_TREE_SEL_CHANGED, self.TagTreeOnTreeSelChanged)
         self.FilterBox.Bind(wx.EVT_TEXT_ENTER, self.FilterBoxOnTextEnter)

@@ -52,7 +52,8 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
 
         if value.strip() != "":
             self.update_filters(value)
-        self.FilterBox.SetValue(str(self.filter))
+        if self.FilterBox.Value != str(self.filter):
+            self.FilterBox.SetValue(str(self.filter))
         self.update_thumbnails()
         self.SetStatusText("Matching Images: %s" % self.thumbnailGrid.ItemCount)
 
@@ -84,10 +85,6 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
             for file in files:
                 new_files.append(os.path.join(root, file))
         self.import_files(new_files)
-
-    def DebugMenuItemOnMenuSelection(self, event):
-        import pdb
-        pdb.set_trace()
 
     def ExitButtonOnMenuSelection(self, event):
         self.Close()
@@ -268,7 +265,7 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
         wRatio = width / preview.Width
         ratio = min(hRatio, wRatio)
         image = preview.Scale(preview.Width * ratio, preview.Height * ratio, wx.IMAGE_QUALITY_HIGH)
-        result = wx.BitmapFromImage(image)
+        result = image.ConvertToBitmap()
         # set the Result.
         self.Preview.SetBitmap(result)
 

@@ -2,6 +2,7 @@
 import wx
 
 from ui import PhotoOrganizerWindow
+from plugins import load_plugins
 
 import logging
 
@@ -9,6 +10,8 @@ import logging
 class PhotoOrganizer(wx.App):
     def OnInit(self):
         frame = PhotoOrganizerWindow(None)
+        load_plugins(frame)
+
         frame.Show()
         self.SetTopWindow(frame)
         return True
