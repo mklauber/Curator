@@ -44,7 +44,7 @@ class File(BaseModel):
         }
 
     @classmethod
-    def create_from_file(cls, path):
+    def create_from_file(cls, path, import_time=None):
         """Handles all the logic about creating a File record from a file on the filesystem."""
         logger.debug("Parsing file at %s", path)
         f = cls()

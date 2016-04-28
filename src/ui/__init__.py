@@ -64,7 +64,7 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
     @preview.setter
     def preview(self, value):
         self._preview = value
-        self.update_metadata(File.get(md5=value).get_metadata())
+        self.update_metadata()
         self.update_preview()
 
     def AddFileButtonOnMenuSelection(self, event):
@@ -216,7 +216,7 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
     def import_files(self, files):
         # Create the new files, and update the thumnail_index with any new files
         import_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        new_files = filter(None, (File.create_from_file(path) for path in files))
+        new_files = filter(None, (File.create_from_file(path, import_time) for path in files))
         for f in new_files:
             self.thumbnail_index[f.md5] = self.thumbnails.Add(f.as_bitmap())
 
@@ -278,7 +278,8 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
         self.FilterBox.Clear()
         self.FilterBox.AppendItems(self.filters)
 
-    def update_metadata(self, metadata):
+    def update_metadata(self):
+        metadata = File.get(md5=self.preview).get_metadata()
         # Handle Static markup
         markup = ""
         markup += "<b>Name:</b> %s<br />" % metadata['name']
