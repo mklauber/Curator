@@ -1,8 +1,8 @@
 """Handles the parsing of a query string, and returning a SQL object representing a query."""
 import shlex
-
 import peewee
 from models import File, Metadata
+
 
 def parse(query):
     if query == "":
@@ -15,6 +15,7 @@ def parse(query):
     except TypeError:
         result = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where(result)
     return result
+
 
 def tokenize(string):
     string = string.replace('(', ' ( ')
@@ -62,7 +63,8 @@ def HAS(_, token):
 
 
 def UNTAGGED():
-    return set(File.select().where(File.id.not_in(Metadata.select(Metadata.file).where(Metadata.field != 'import-time'))))
+    tagged_files = Metadata.select(Metadata.file).where(Metadata.field != 'import-time')
+    return set(File.select().where(File.id.not_in(tagged_files)))
 
 
 def Token(token):
@@ -70,5 +72,5 @@ def Token(token):
         field, value = token.split(':', 1)
     else:
         field, value = 'tag', token
-    return set(File.select().join(Metadata, peewee.JOIN_LEFT_OUTER).where((Metadata.field == field) & (Metadata.value == value)))
-
+    files = File.select().join(Metadata, peewee.JOIN_LEFT_OUTER)
+    return set(files.where((Metadata.field == field) & (Metadata.value == value)))
