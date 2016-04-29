@@ -95,9 +95,9 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
     def thumbnailGridOnChar(self, event):
         if event.GetKeyCode() in [ord(i) for i in ['t', 'T']]:
             self.handle_T_key()
-        elif event.GetKeyCode() == wx.WXK_DELETE and event.shiftDown == False:
+        elif event.GetKeyCode() == wx.WXK_DELETE and event.shiftDown is False:
             self.handle_backspace_key()
-        elif event.GetKeyCode() == wx.WXK_DELETE and event.shiftDown == True:
+        elif event.GetKeyCode() == wx.WXK_DELETE and event.shiftDown is True:
             self.handle_delete_key()
         else:
             event.Skip(True)
@@ -182,6 +182,7 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
 
     def thumbnailGridOnListItemSelected(self, event):
         item = event.Item
+
         def change_selection(_):
             if item.Text == self.thumbnailGrid.GetItem(self.thumbnailGrid.GetFocusedItem()).Text:
                 self.preview = item.Text
@@ -216,7 +217,7 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
     def import_files(self, files):
         # Create the new files, and update the thumnail_index with any new files
         import_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        new_files = filter(None, (File.create_from_file(path) for path in files))
+        new_files = filter(None, (File.create_from_file(path, import_time) for path in files))
         for f in new_files:
             self.thumbnail_index[f.md5] = self.thumbnails.Add(f.as_bitmap())
 
@@ -253,7 +254,7 @@ class PhotoOrganizerWindow(PhotoOrganizerFrame):
             self.TagTree.Expand(field)
 
     def update_preview(self):
-        if self.preview == None:
+        if self.preview is None:
             return
 
         # The logic for creating a accurate image as large as can be seen

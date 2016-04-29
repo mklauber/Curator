@@ -1,6 +1,6 @@
 from __future__ import division
-
 import wx
+
 
 def scale_bitmap(bitmap, width, height, quality=wx.IMAGE_QUALITY_NORMAL):
     image = wx.ImageFromBitmap(bitmap)
